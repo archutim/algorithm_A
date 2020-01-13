@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "../include/algorithm.h"
-
+#define WIN_THE_GAME 31
 using namespace std;
 
 /******************************************************
@@ -24,44 +24,58 @@ using namespace std;
  * 3. The function that return the color fo the cell(row, col)
  * 4. The function that print out the current board statement
 *************************************************************************/
-
-
-void algorithm_A(Board board, Player player, int index[]){
-    Board next_board[5][6];
-    bool placed[5][6];
+int priority_cal(Board board, Player player){
+    Board next_board[ROW][COL];
     char color = player.get_color();
-    int row, col;
-    srand(time(NULL));
-    while(1){
-        row = rand() % 5;
-        col = rand() % 6;
-        if(board.get_cell_color(row, col) == color || board.get_cell_color(row, col) == 'w') break;
-    }
-    index[0] = row;
-    index[1] = col;    
-    for(row=0;row<5;row++){
-        for(col=0;col<6;col++){
-            next_board[row][col] = board;
-            placed[row][col] = false;
+    int priority = 30;
+    for(int i=0;i<ROW;i++)
+        for(int j=0;j<COL;j++)
+            next_board[i][j] = board;
+    for(int i=0;i<ROW;i++){
+        for(int j=0;j<COL;j++){
+            if(board.get_cell_color(i, j) == color || board.get_cell_color(i, j) == 'w'){
+                next_board[i][j].place_orb(i, j, &player);
+                if(next_board[i][j].win_the_game(player))
+                    priority--;
+            }
         }
     }
-    for(int row=0;row<5;row++){
-        for(int col=0;col<6;col++){
-            if(board.get_cell_color(row, col) == color || board.get_cell_color(row, col) == 'w'){
-                next_board[row][col].place_orb(row, col, &player);
-                placed[row][col] = true;
-                if(next_board[row][col].win_the_game(player)){
-                    index[0] = row;
-                    index[1] = col;
+    return priority;
+}
+
+void algorithm_A(Board board, Player player, int index[]){
+    Board next_board[ROW][COL];
+    int dst_row, dst_col, current_priority, max_priority=-1;
+    Player* opponent;
+    char color = player.get_color();
+    char colorOpponent = 'v'; // virtual player
+    for(int i=0;i<ROW;i++){
+        for(int j=0;j<COL;j++){
+            if(board.get_cell_color(i,j)!='w' && board.get_cell_color(i,j)!=color)
+                colorOpponent = board.get_cell_color(i,j);
+        }
+    }
+    opponent = new Player(colorOpponent); 
+    for(int i=0;i<ROW;i++)
+        for(int j=0;j<COL;j++)
+            next_board[i][j] = board;
+
+    for(int i=0;i<ROW;i++){
+        for(int j=0;j<COL;j++){
+            if(board.get_cell_color(i, j) == color || board.get_cell_color(i, j) == 'w'){
+                next_board[i][j].place_orb(i, j, &player);
+                if(next_board[i][j].win_the_game(player))
+                    current_priority = WIN_THE_GAME;
+                else
+                    current_priority = priority_cal(next_board[i][j], *opponent);
+                if(current_priority>max_priority){
+                    dst_row = i;
+                    dst_col = j;
+                    max_priority = current_priority;
                 }
             }
         }
     }
-    // cout << board.get_capacity(0, 0) << endl;
-    // cout << board.get_orbs_num(0, 0) << endl;
-    // cout << board.get_cell_color(0, 0) << endl;
-    // board.print_current_board(0, 0, 0);
-
-    //////////// Random Algorithm ////////////
-    // Here is the random algorithm for your reference, you can delete or comment it.
+    index[0] = dst_row;
+    index[1] = dst_col;
 }
