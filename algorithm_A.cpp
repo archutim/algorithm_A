@@ -44,6 +44,7 @@ int priority_cal(Board board, Player player){
 }
 
 void algorithm_A(Board board, Player player, int index[]){
+    srand(time(NULL));
     Board next_board[ROW][COL];
     int dst_row, dst_col, current_priority, max_priority=-1;
     Player* opponent;
@@ -55,7 +56,8 @@ void algorithm_A(Board board, Player player, int index[]){
                 colorOpponent = board.get_cell_color(i,j);
         }
     }
-    opponent = new Player(colorOpponent); 
+    opponent = new Player(colorOpponent);
+
     for(int i=0;i<ROW;i++)
         for(int j=0;j<COL;j++)
             next_board[i][j] = board;
@@ -72,6 +74,12 @@ void algorithm_A(Board board, Player player, int index[]){
                     dst_row = i;
                     dst_col = j;
                     max_priority = current_priority;
+                }
+                else if(current_priority == max_priority){
+                    if(rand() % 2){
+                        dst_row = i;
+                        dst_col = j;
+                    }
                 }
             }
         }
